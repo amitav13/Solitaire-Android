@@ -1,7 +1,10 @@
 package com.amitavkhandelwal.solitaire
 
+import android.content.Context
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import org.jetbrains.anko.*
 
@@ -14,19 +17,23 @@ fun View.getResIdForCard(card: Card): Int {
     return context.resources.getIdentifier(resourceName, "drawable", context.packageName)
 }
 
+val Context.cardWidth: Int
+        get() = (displayMetrics.widthPixels - dip(8)) / 7
+val Context.cardHeight: Int
+        get() = cardWidth * 190 / 140 //size of image asset we have
+
 class MainActivity : AppCompatActivity(), GameView {
 
     var deckView: DeckView? = null
     var wastePileView: WastePileView? = null
+    val foundationPileViews: Array<FoundationPileView?> = arrayOfNulls(4)
+    val tableauPileViews: Array<TableauPileView?> = arrayOfNulls(7)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         GamePresenter.setGameView(this)
         GameModel.resetGame()
-
-        val cardWidth = (displayMetrics.widthPixels - dip(8)) / 7
-        val cardHeight = cardWidth * 190 / 140 //size of image asset we have
 
         verticalLayout {
             leftPadding = dip(4)
@@ -38,19 +45,41 @@ class MainActivity : AppCompatActivity(), GameView {
                 wastePileView = wastePileView().lparams(cardWidth, cardHeight)
                 view().lparams(cardWidth, 0)
                 for(i in 0..3) {
-                    imageView(imageResource = emptyPileDrawable).lparams(cardWidth, cardHeight)
+                    foundationPileViews[i] = foundationPileView(i).lparams(cardWidth, cardHeight)
                 }
             }
             linearLayout {
-
+                for (i in 0..6) {
+                    tableauPileViews[i] = tableauPileView(i).lparams(cardWidth, matchParent)
+                }
+            }.lparams(height = matchParent) {
+                topMargin = cardHeight / 2
             }
         }
 
     }
 
-    override fun update(model: GameModel) {
+    override fun update() {
         //asserting not null because this can only be called after the view is created
         deckView!!.update()
         wastePileView!!.update()
+        foundationPileViews.forEach {
+            it!!.update()
+        }
+        tableauPileViews.forEach {
+            it!!.update()
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menu.add("Start over")
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        GameModel.resetGame()
+        update()
+
+        return true
     }
 }
