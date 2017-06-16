@@ -25,7 +25,7 @@ class TableauPileView(context: Context, val index: Int) : _RelativeLayout(contex
         val cards = GameModel.tableauPiles[index].cards
         cards.forEachIndexed { i, card ->
             imageView {
-                y = (i * dip(25)).toFloat()
+                y = (i * dip(22)).toFloat()
                 imageResource = if (card.faceUp) getResIdForCard(card) else cardBackDrawable
                 setOnClickListener {
                     GamePresenter.onTableauTap(index, i)
